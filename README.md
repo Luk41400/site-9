@@ -26,9 +26,11 @@ No Windows, também pode usar `py -m http.server 8000`. Abra **http://localhost:
 .
 ├── index.html          # Página única
 ├── css/
-│   └── style.css       # Estilos, temas e responsividade
+│   ├── style.css       # Estilos, temas e responsividade
+│   └── legends-scroll.css # Layout e efeitos da seção de lendas
 ├── js/
 │   ├── data.js         # Dados históricos, perguntas, imagens e créditos
+│   ├── legends-scroll.js # Sticky, medidas, inércia e teclado das lendas
 │   └── app.js          # Interações e renderização
 ├── assets/
 │   └── img/           # Fotografias WebP, favicon e CREDITOS.json
@@ -54,12 +56,22 @@ Os títulos usam **Bebas Neue**, e os textos, **Inter**, via Google Fonts. Sem a
 - Linha do tempo com as 22 edições, filtros, campanha, resultado e último jogo. Tabs aceitam setas, Home e End.
 - Cinco campanhas campeãs com finais, técnicos, capitães e destaques.
 - Vices e momentos marcantes tratados com respeito.
-- Carrossel de 13 lendas; setas, teclado e gesto de deslizar.
+- Seção de 13 lendas com scroll horizontal vinculado à rolagem vertical, sticky, inércia, destaque do card central e parallax nas fotos. Setas e teclado permitem percorrer a faixa.
 - Gráficos CSS de títulos, artilheiros, distribuição dos resultados, aproveitamento e gols por edição.
 - Galeria masonry com lightbox: setas, Escape, foco contido pelo diálogo nativo e retorno do foco à imagem.
 - Quiz com oito perguntas, explicação, pontuação animada e reinício.
 - Tema claro/escuro salvo em `localStorage`, menu móvel, navegação de seção ativa e progresso de rolagem.
 - Animações por IntersectionObserver e parallax por transform. `prefers-reduced-motion` desliga os movimentos. Imagens com alt, dimensões e lazy loading; hero com prioridade alta e srcset.
+
+### Como funciona a seção de lendas
+
+Em janelas a partir de **768 px de largura e 680 px de altura**, a seção fica presa no topo durante o percurso horizontal. Sua altura é `altura da viewport + (largura da faixa − largura visível)`. Nenhum evento de wheel ou touch é interceptado; a página usa rolagem nativa e libera a próxima seção depois de exibir o último card inteiro.
+
+`js/legends-scroll.js` calcula as medidas com ResizeObserver, após o carregamento das fotos e das fontes. O agendador de requestAnimationFrame de `app.js` atualiza a faixa e a inércia de fator 0,10. As imagens usam uma camada P&B e outra em cor, misturadas por opacidade, preservando o filtro de grayscale estático.
+
+As setas da interface rolam a página até o card anterior/próximo. Cada card aceita foco: **Tab** percorre os jogadores; **←/→**, **Home** e **End** movem foco e faixa em conjunto. **Page Down**, **Espaço** e a rolagem continuam nativos. O card focado é mantido inteiramente visível.
+
+Com `prefers-reduced-motion: reduce`, largura menor que 768 px ou altura menor que 680 px, o efeito pinned cede lugar ao carrossel horizontal nativo com snap. A preferência de movimento também pode ser alterada durante o uso. Os cards mantêm a mesma geometria, área de foto e altura; a escala de destaque é apenas visual.
 
 ## Recorte e método
 

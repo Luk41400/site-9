@@ -88,11 +88,13 @@
 
   $('#title-cards').innerHTML = D.titles.map((title,index)=>`<article class="title-card reveal" style="--delay:${index%3*80}ms"><div class="title-image">${photoHTML(title.image)}<strong>${title.year}</strong><span aria-label="${index+1}º título">★</span></div><div class="title-body"><p class="eyebrow">${escape(title.imageLabel)}</p><h3>${escape(title.heading)}</h3><div class="final-score"><span>Brasil</span><strong>${escape(title.score)}</strong><span>${escape(title.opponent)}</span></div>${title.penalties?`<p class="penalty-note">Brasil venceu: ${escape(title.penalties)}.</p>`:''}<dl class="title-meta"><div><dt>Técnico</dt><dd>${escape(title.coach)}</dd></div><div><dt>Capitão</dt><dd>${escape(title.captain)}</dd></div></dl><p class="title-highlight">${escape(title.highlights)}</p></div></article>`).join('');
   $('#moment-cards').innerHTML = D.moments.map((moment,index)=>`<article class="moment-card reveal" style="--delay:${index*70}ms"><span class="moment-year">${moment.year}</span><span class="moment-label">${escape(moment.label)}</span><h3>${escape(moment.title)}</h3><p>${escape(moment.text)}</p></article>`).join('');
-  $('#legends').innerHTML = D.legends.map((legend,index)=>`<article class="legend-card"><div class="legend-photo">${photoHTML(legend.image)}<span class="legend-index">${String(index+1).padStart(2,'0')} / LENDAS</span><span class="legend-position">${escape(legend.position)}</span></div><div class="legend-body"><h3>${escape(legend.name)}</h3><p class="legend-cups">EM CAMPO: ${legend.editions.join(' · ')}</p><p>${escape(legend.feat)}${legend.note?`<br><small>${escape(legend.note)}</small>`:''}</p></div></article>`).join('');
-  $$('[data-carousel]').forEach(button=>button.addEventListener('click',()=>{
-    const track=$('#'+button.dataset.carousel);track.scrollBy({left:Number(button.dataset.dir)*(track.clientWidth*.8),behavior:motion.matches?'instant':'smooth'});
-  }));
-  $('#legends').addEventListener('keydown',event=>{if(event.target!==event.currentTarget)return;if(event.key==='ArrowRight'||event.key==='ArrowLeft'){event.preventDefault();event.currentTarget.scrollBy({left:event.key==='ArrowRight'?288:-288,behavior:motion.matches?'instant':'smooth'});}});
+  $('#legends').innerHTML = D.legends.map((legend,index)=>{
+    const titles=D.titles.filter(title=>legend.editions.includes(title.year)||legend.squadOnly?.includes(title.year));
+    const titleLabel=titles.length?'Títulos no elenco: '+titles.map(title=>title.year).join(', '):'Sem título mundial';
+    // Duas camadas da mesma foto fazem a transição P&B/cor por opacity, sem recalcular filtros.
+    const colorImage=photoHTML(legend.image,'legend-image-color').replace(/alt="[^"]*"/,'alt="" aria-hidden="true"');
+    return `<article class="legend-card" tabindex="0" aria-labelledby="legend-name-${index}" aria-describedby="legend-feat-${index}" style="--entrance-delay:${Math.min(index,5)*70}ms"><div class="legend-card-inner"><div class="legend-photo">${photoHTML(legend.image,'legend-image-mono')}${colorImage}<span class="legend-index">${String(index+1).padStart(2,'0')} / LENDAS</span><span class="legend-titles" aria-label="${escape(titleLabel)}" title="${escape(titleLabel)}">${'★'.repeat(titles.length)}</span><span class="legend-position">${escape(legend.position)}</span></div><div class="legend-body"><h3 id="legend-name-${index}">${escape(legend.name)}</h3><p class="legend-cups">EM CAMPO: ${legend.editions.join(' · ')}</p><p id="legend-feat-${index}">${escape(legend.feat)}${legend.note?`<br><small>${escape(legend.note)}</small>`:''}</p></div></div></article>`;
+  }).join('');
 
   // Gráficos CSS acessíveis: cada valor também está disponível em texto.
   function bars(items,label,value,max) {return items.map(item=>`<div class="bar-row"><span class="bar-label">${escape(item[label])}</span><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="--value:${item[value]/max*100}%"></div></div><strong>${item[value]}</strong></div>`).join('');}
@@ -168,21 +170,27 @@
   $('#sources-list').innerHTML=D.sources.map(source=>`<li>${extLink(source.url,source.label)}</li>`).join('')+`<li>Campanhas por edição: ${D.editions.map(edition=>extLink(edition.source,edition.year)).join(' · ')}.</li><li>${escape(D.methodology)}</li>`;
   $('#image-credits').innerHTML=D.images.map(image=>`<li><strong>${escape(image.id)}</strong> — ${escape(image.caption)} ${escape(image.author)}. ${extLink(image.licenseUrl,image.license)}. ${extLink(image.source,'Fonte original')}. ${escape(image.changes)}</li>`).join('');
 
-  // Um único requestAnimationFrame por quadro de rolagem; parallax usa transform.
-  let scrollPending=false;
+  // Um único agendador reúne a rolagem da página e a inércia das lendas.
+  let scrollFrame=0,legendsScroller=null;
   const heroMedia=$('.hero-image'),header=$('.site-header'),progress=$('.scroll-progress'),divider=$('.parallax-divider'),dividerMedia=$('.divider-image');
-  function updateScroll(){
-    const y=window.scrollY,total=document.documentElement.scrollHeight-innerHeight;
+  function requestScrollUpdate(){if(!scrollFrame)scrollFrame=requestAnimationFrame(updateScroll);}
+  function updateScroll(now){
+    scrollFrame=0;
+    const y=window.scrollY;
+    // Medidas de resize são resolvidas antes do progresso global (a altura pode mudar).
+    const moving=legendsScroller?.update(now,y);
+    const total=document.documentElement.scrollHeight-innerHeight;
     header.classList.toggle('scrolled',y>50);
-    progress.style.transform=`scaleX(${total>0?y/total:0})`;
-    if(!motion.matches && y<innerHeight*1.4)heroMedia.style.transform=`translate3d(0,${Math.min(y*.16,150)}px,0)`;
+    progress.style.transform=`scaleX(${total>0?window.scrollY/total:0})`;
+    if(!motion.matches&&y<innerHeight*1.4)heroMedia.style.transform=`translate3d(0,${Math.min(y*.16,150)}px,0)`;
     if(!motion.matches){const bounds=divider.getBoundingClientRect();if(bounds.top<innerHeight&&bounds.bottom>0)dividerMedia.style.transform=`translate3d(0,${(innerHeight/2-bounds.top-bounds.height/2)*.12}px,0)`;}
-    scrollPending=false;
+    if(moving)requestScrollUpdate();
   }
-  addEventListener('scroll',()=>{if(!scrollPending){scrollPending=true;requestAnimationFrame(updateScroll);}},{passive:true});
-  addEventListener('resize',updateScroll,{passive:true});
-  motion.addEventListener('change',()=>{document.documentElement.classList.toggle('js-motion',!motion.matches);if(motion.matches){heroMedia.style.transform='none';dividerMedia.style.transform='none';}updateScroll();});
-  updateScroll();
+  legendsScroller=window.createLegendsScroll({section:$('#lendas'),motion,requestFrame:requestScrollUpdate});
+  addEventListener('scroll',requestScrollUpdate,{passive:true});
+  addEventListener('resize',()=>{legendsScroller.invalidate();requestScrollUpdate();},{passive:true});
+  motion.addEventListener('change',()=>{document.documentElement.classList.toggle('js-motion',!motion.matches);if(motion.matches){heroMedia.style.transform='none';dividerMedia.style.transform='none';}legendsScroller.invalidate();requestScrollUpdate();});
+  requestScrollUpdate();
 
   function animateCounter(element){
     const target=Number(element.dataset.count),pad=Number(element.dataset.pad)||0;

@@ -11,8 +11,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/legends-scroll.css">
   <script>try{const t=localStorage.getItem('brasil-theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}catch(e){/* Armazenamento pode estar indisponível no navegador. */}</script>
   <script src="js/data.js" defer></script>
+  <script src="js/legends-scroll.js" defer></script>
   <script src="js/app.js" defer></script>
 </head>
 <body>
@@ -61,7 +63,20 @@
 
     <aside class="parallax-divider" aria-label="A paixão pelo futebol"><div class="divider-image" id="divider-image" aria-hidden="true"></div><div class="container reveal"><p class="eyebrow">DAS ARQUIBANCADAS PARA A MEMÓRIA</p><p>ONDE ENTRA A SELEÇÃO,<br><span>ENTRA UM PAÍS INTEIRO.</span></p><span class="tiny-label">MARACANÃ, RIO DE JANEIRO · FOTOGRAFIA DE 2014</span></div></aside>
 
-    <section id="lendas" class="section legends-section" aria-labelledby="legends-title"><div class="container"><div class="section-heading reveal"><div><p class="eyebrow">04 / GENTE QUE VIROU HISTÓRIA</p><h2 id="legends-title">O TALENTO É NOSSO.<br><span>O LEGADO É DO MUNDO.</span></h2></div><div class="heading-aside"><p>Camisas diferentes. A mesma arte.<br>Conheça alguns dos nomes que fizeram o Brasil.</p><div class="arrow-controls"><button class="icon-button" data-carousel="legends" data-dir="-1" aria-label="Jogadores anteriores">←</button><button class="icon-button" data-carousel="legends" data-dir="1" aria-label="Próximos jogadores">→</button></div></div></div><div id="legends" class="legends-track" role="region" aria-label="Carrossel de lendas; use os botões ou deslize" tabindex="0"></div><p class="carousel-hint">DESLIZE PARA CONHECER MAIS LENDAS <span aria-hidden="true">⟶</span></p></div></section>
+    <!-- A altura deste wrapper é viewport + percurso horizontal; sticky não captura wheel/touch. -->
+    <section id="lendas" class="section legends-section lendas-scroll" aria-labelledby="legends-title">
+      <div class="lendas-sticky">
+        <div class="container lendas-content">
+          <div class="section-heading legend-heading">
+            <div><p class="eyebrow">04 / GENTE QUE VIROU HISTÓRIA</p><h2 id="legends-title"><span class="legend-title-line"><span>O TALENTO É NOSSO.</span></span><span class="legend-title-line"><span>O LEGADO É DO MUNDO.</span></span></h2></div>
+            <div class="heading-aside"><p>Camisas diferentes. A mesma arte.<br>Conheça alguns dos nomes que fizeram o Brasil.</p><div class="arrow-controls"><button class="icon-button" data-carousel="legends" data-dir="-1" aria-controls="legends" aria-label="Jogador anterior">←</button><button class="icon-button" data-carousel="legends" data-dir="1" aria-controls="legends" aria-label="Próximo jogador">→</button></div></div>
+          </div>
+          <div class="legends-viewport"><div id="legends" class="legends-track" role="region" aria-label="Lendas da seleção brasileira" aria-describedby="legends-instructions" tabindex="0"></div></div>
+          <div class="legends-footer"><div class="legends-progress" aria-hidden="true"><span></span></div><p class="carousel-hint"><span id="legends-hint">DESLIZE PARA CONHECER MAIS LENDAS</span><span id="legends-count" aria-hidden="true">01 / 13</span></p></div>
+          <p class="sr-only" id="legends-instructions">Role a página para conhecer as lendas. Nos cards, use as setas esquerda e direita, Home ou End. Tab percorre os jogadores e segue para a próxima seção.</p>
+        </div>
+      </div>
+    </section>
 
     <section id="numeros" class="section numbers-section" aria-labelledby="numbers-title"><div class="container"><div class="section-heading reveal"><div><p class="eyebrow">05 / A GRANDEZA EM DADOS</p><h2 id="numbers-title">O FUTEBOL EMOCIONA.<br><span>OS NÚMEROS CONTAM.</span></h2></div><p class="heading-aside">Um retrato da seleção masculina nas Copas, até a edição de 2022. Explore as conquistas, os gols e as campanhas.</p></div><div class="charts-grid"><article class="chart-card reveal"><div class="chart-heading"><h3>Donos do mundo</h3><span>TÍTULOS ATÉ 2022</span></div><div id="country-chart" class="bar-chart"></div></article><article class="chart-card reveal"><div class="chart-heading"><h3>O caminho do gol</h3><span>ARTILHEIROS DO BRASIL</span></div><div id="scorer-chart" class="bar-chart"></div></article><article class="chart-card performance-card reveal"><div class="chart-heading"><h3>Uma camisa, 114 jogos</h3><span>1930—2022</span></div><div class="performance-body"><div class="donut" role="img" aria-label="Aproveitamento de 72,2 por cento dos pontos possíveis"><div><strong id="performance-value">72,2<span>%</span></strong><span>APROVEITAMENTO</span></div></div><div id="record-legend"></div></div><p class="chart-note">Vitória = 3 pontos; empate = 1. Disputas por pênaltis contam como empate.</p></article><article class="chart-card goals-card reveal"><div class="chart-heading"><h3>Gols por edição</h3><span>237 GOLS MARCADOS</span></div><div class="goals-scroll"><div id="goals-chart" class="goals-chart" role="img" aria-label="Gols marcados pelo Brasil em cada Copa, de 1930 a 2022"></div></div><p class="chart-note">Cada barra é uma Copa. Passe o cursor ou use Tab para ver o total.</p></article></div></div></section>
 
